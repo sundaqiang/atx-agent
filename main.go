@@ -188,16 +188,18 @@ var (
 	displayMaxWidthHeight = 800
 )
 
-func updateMinicapRotation(rotation int) {
+func updateMinicapRotation(rotation int, size string) { //新增一个参数以随时改变minicap画质
 	running := service.Running("minicap")
 	if running {
 		service.Stop("minicap")
 		killProcessByName("minicap") // kill not controlled minicap
 	}
 	devInfo := getDeviceInfo()
-	width, height := devInfo.Display.Width, devInfo.Display.Height
+	if size == "" {
+		size = fmt.Sprintf("%dx%d", devInfo.Display.Width, devInfo.Display.Height)
+	}
 	service.UpdateArgs("minicap", "/data/local/tmp/minicap", "-S", "-P",
-		fmt.Sprintf("%dx%d@%dx%d/%d", width, height, displayMaxWidthHeight, displayMaxWidthHeight, rotation))
+		fmt.Sprintf("%dx%d@%s/%d", devInfo.Display.Width, devInfo.Display.Height, size, rotation))
 	if running {
 		service.Start("minicap")
 	}
@@ -475,7 +477,7 @@ func _watchRotation() {
 				}
 				deviceRotation = rotation
 				if minicapSocketPath == "@minicap" {
-					updateMinicapRotation(deviceRotation)
+					updateMinicapRotation(deviceRotation,"")//适配新的函数
 				}
 				rotationPublisher.Submit(rotation)
 				log.Println("Rotation -->", rotation)
