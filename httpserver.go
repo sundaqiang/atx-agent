@@ -578,6 +578,7 @@ func (server *Server) initHTTPServer() {
 	}).Methods("POST")
 
 	m.HandleFunc("/info/rotation", func(w http.ResponseWriter, r *http.Request) {
+		thumbnailSize := r.FormValue("thumbnail")//增加一个参数
 		apkServiceTimer.Reset(apkServiceTimeout)
 		var direction int                                 // 0,1,2,3
 		err := json.NewDecoder(r.Body).Decode(&direction) // TODO: auto get rotation
@@ -617,7 +618,7 @@ func (server *Server) initHTTPServer() {
 
 		// minicapHub.broadcast <- []byte("rotation " + strconv.Itoa(deviceRotation))
 		updateMinicapRotation(deviceRotation)
-		rotationPublisher.Submit(deviceRotation)
+		updateMinicapRotation(deviceRotation,thumbnailSize)//使用参数
 
 		// APK Service will send rotation to atx-agent when rotation changes
 		runShellTimeout(5*time.Second, "am", "startservice", "--user", "0", "-n", "com.github.uiautomator/.Service")
